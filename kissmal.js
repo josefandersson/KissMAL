@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://raw.githubusercontent.com/itggot-josef-andersson/KissMAL/master/kissmal.js
-// @version      1.5.3
+// @version      1.5.4
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
@@ -66,7 +66,7 @@ function addSettingsPopup() {
             $('#general_link_enable')[0].checked = config.generalLinkEnabled;
             $('#sub_link_enable')[0].checked     = config.subLinkEnabled;
             $('#dub_link_enable')[0].checked     = config.dubLinkEnabled;
-            $('#open_in_new_tab')[0].checked     = KissMAL.newTab;
+            $('#open_in_new_tab')[0].checked     = config.newTab;
         }
     });
 }
@@ -152,10 +152,10 @@ function saveSettings() {
 
     /* Save settings to storage */
     GM_setValue('kissanime_link_css',  config.linkCss);
-    GM_setValue('general_link_enable', config.generalLinkEnabled);
-    GM_setValue('sub_link_enable',     config.subLinkEnabled);
-    GM_setValue('dub_link_enable',     config.dubLinkEnabled);
-    GM_setValue('open_in_new_tab',     config.newTab);
+    GM_setValue('general_link_enable', config.generalLinkEnabled + '');
+    GM_setValue('sub_link_enable',     config.subLinkEnabled + '');
+    GM_setValue('dub_link_enable',     config.dubLinkEnabled + '');
+    GM_setValue('open_in_new_tab',     config.newTab + '');
 
     /* Re-do the links with new settings applied */
     removeLinks();
