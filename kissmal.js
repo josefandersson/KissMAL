@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         KissMAL
-// @namespace    https://raw.githubusercontent.com/itggot-josef-andersson/KissMAL/master/kissmal.js
+// @namespace    https://github.com/itggot-josef-andersson/KissMAL
 // @version      1.5.4
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
