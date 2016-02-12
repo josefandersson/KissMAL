@@ -1,16 +1,17 @@
 // ==UserScript==
 // @name         KissMAL
-// @namespace    -
-// @version      1.5.1
+// @namespace    https://github.com/itggot-josef-andersson/KissMAL
+// @version      1.5.2
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
-// @require      http://userscripts.org/scripts/source/107941.user.js
 // @require      https://code.jquery.com/jquery-2.1.4.min.js
 // @resource     MainCSS https://raw.githubusercontent.com/itggot-josef-andersson/KissMAL/master/resources/kissmal.css
 // @resource     SettingsPopup https://raw.githubusercontent.com/itggot-josef-andersson/KissMAL/master/resources/settings.html
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @run-at       document-end
 // ==/UserScript==
 /* jshint -W097 */
@@ -22,11 +23,11 @@ TODO
 
 var config = {};
 config.defaultLinkCss     = 'font-size: 10px; opacity: 0.8; margin-left: 3px; margin-right: 2px;';
-config.linkCss            = GM_SuperValue.get('kissanime_link_css') || config.defaultLinkCss;
-config.subLinkEnabled     = GM_SuperValue.get('sub_link_enable') != 'false';     // Defaults the value to true if it doesn't exist
-config.dubLinkEnabled     = GM_SuperValue.get('dub_link_enable') != 'false';
-config.generalLinkEnabled = GM_SuperValue.get('general_link_enable') != 'false';
-config.newTab             = GM_SuperValue.get('open_in_new_tab') != 'false';
+config.linkCss            = GM_getValue('kissanime_link_css') || config.defaultLinkCss;
+config.subLinkEnabled     = GM_getValue('sub_link_enable') != 'false';     // Defaults the value to true if it doesn't exist
+config.dubLinkEnabled     = GM_getValue('dub_link_enable') != 'false';
+config.generalLinkEnabled = GM_getValue('general_link_enable') != 'false';
+config.newTab             = GM_getValue('open_in_new_tab') != 'false';
 
 /* Add the css and the customized link css */
 function addCSS() {
@@ -150,13 +151,18 @@ function saveSettings() {
     config.newTab             = $('#open_in_new_tab')[0].checked;
 
     /* Save settings to storage */
-    GM_SuperValue.set('kissanime_link_css',  config.linkCss);
-    GM_SuperValue.set('general_link_enable', config.generalLinkEnabled);
-    GM_SuperValue.set('sub_link_enable',     config.subLinkEnabled);
-    GM_SuperValue.set('dub_link_enable',     config.dubLinkEnabled);
-    GM_SuperValue.set('open_in_new_tab',     config.newTab);
+    GM_setValue('kissanime_link_css',  config.linkCss);
+    GM_setValue('general_link_enable', config.generalLinkEnabled);
+    GM_setValue('sub_link_enable',     config.subLinkEnabled);
+    GM_setValue('dub_link_enable',     config.dubLinkEnabled);
+    GM_setValue('open_in_new_tab',     config.newTab);
 
     /* Re-do the links with new settings applied */
     removeLinks();
     makeLinks();
 }
+
+/* Add the things */
+addCSS();
+addSettingsPopup();
+makeLinks();
