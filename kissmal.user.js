@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.6
+// @version      1.6.1
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
@@ -166,7 +166,7 @@ function saveSettings() {
 /* Add kissanime links to an animes page */
 function addLinksOnAnimePage() {
     /* We need the title of the anime */
-    var animeTitle = $('h1.h1 span').text().slice(1, -1);
+    var animeTitle = $('h1.h1 span').text();
 
     /* We will put the links inside this div */
     var linkContainer = document.createElement('div');
