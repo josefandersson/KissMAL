@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.5.7
+// @version      1.6
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
+// @match        http://myanimelist.net/anime/*
 // @require      https://code.jquery.com/jquery-2.1.4.min.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
 // @resource     SettingsPopup https://github.com/josefandersson/KissMAL/raw/master/resources/settings.html
@@ -14,7 +15,6 @@
 // @grant        GM_getValue
 // @run-at       document-end
 // ==/UserScript==
-/* jshint -W097 */
 
 /*
 TODO
@@ -163,7 +163,55 @@ function saveSettings() {
     makeLinks();
 }
 
-/* Add the things */
-addCSS();
-addSettingsPopup();
-makeLinks();
+/* Add kissanime links to an animes page */
+function addLinksOnAnimePage() {
+    /* We need the title of the anime */
+    var animeTitle = $('h1.h1 span').text().slice(1, -1);
+
+    /* We will put the links inside this div */
+    var linkContainer = document.createElement('div');
+    linkContainer.className = 'kissmal_link_container';
+
+    /* Store the different types of kissanime links so that we can loop through them */
+    var map = [[config.generalLinkEnabled, '', 'KissAnime'], [config.subLinkEnabled, ' (sub)', '(sub)'], [config.dubLinkEnabled, ' (dub)', '(dub)']];
+
+    /* Loop through the kissanime link types */
+    for (var typeIndex in map) {
+        var entry = map[typeIndex];
+        if (entry[0] === true) {
+
+            /* Append the link to the DOM */
+            var link = document.createElement('a');
+            link.href = 'http://thisisjusta.filler/' + animeTitle + entry[1];
+            link.innerHTML = entry[2];
+            link.className = 'kissanime_link';
+            linkContainer.appendChild(link);
+            $(link).click(linkClicked);
+        }
+    }
+
+    /* We place the links below the anime profile image */
+    var sibling = $('td.borderClass').children().first();
+    $(linkContainer).insertAfter(sibling);
+}
+
+
+
+/***
+ *** Add the things
+ ***/
+
+var currentLocation = window.location.href;
+
+/* An animes descriptions page */
+if (currentLocation.indexOf('http://myanimelist.net/anime/') > -1) {
+    addCSS();
+    addLinksOnAnimePage();
+}
+
+/* A users anime list */
+if (currentLocation.indexOf('http://myanimelist.net/animelist/') > -1) {
+    addCSS();
+    addSettingsPopup();
+    makeLinks();
+}

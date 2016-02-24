@@ -16,4 +16,8 @@ div#kissmal_settings_container {
     width: 340px;
 }
 
+div.kissmal_link_container {
+    margin-top: 5px;
+}
+
 /* The kissanime link styling that is customizable will be appended below this */
