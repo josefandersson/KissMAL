@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.7.1
+// @version      1.7.2
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
@@ -124,7 +124,9 @@ function makeLinks() {
                 var entry = linkTypeMap[typeIndex];
                 if (entry[0] === true) {
                     /* Create link and add it to the DOM */
-                    var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1])
+                    // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1])
+                    //     .html(entry[2]).addClass('kissanime_link').appendTo(parent);
+                    var link = $('<a></a>').attr('href', guessURL(query, entry[1] == ' (dub)'))
                         .html(entry[2]).addClass('kissanime_link').appendTo(parent);
                 }
             }
@@ -151,7 +153,8 @@ function makeLinksForAnimePage() {
         var entry = linkTypeMap[typeIndex];
         if (entry[0] === true) {
             /* Create link and append it to the DOM */
-            var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + animeTitle + entry[1]).html(entry[2]).addClass('kissanime_link');
+            // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + animeTitle + entry[1]).html(entry[2]).addClass('kissanime_link');
+            var link = $('<a></a>').attr('href', guessURL(animeTitle, entry[1] == ' (dub)')).html(entry[2]).addClass('kissanime_link');
             linkContainer.append(link);
         }
     }
@@ -215,3 +218,51 @@ function saveSettings() {
     removeLinks();
     makeLinks();
 }
+
+
+/* The best we can do is to guess the url for the anime from the title..
+** This process should be pretty straight forward except for when the
+** title of the anime contains special characters(letters). */
+function guessURL(title, dub) {
+    if (title) {
+        title = title.replace(/[^\w\s]/g, ''); // Remove special characters
+        title = title.split(' ').join('-');    // Remove whitespace
+        if (dub) { title += '-dub'; }
+        return 'http://kissanime.to/Anime/' + title;
+    } else {
+        return false;
+    }
+}
+
+
+
+/* This is the function that kissanime uses for making suggestions
+** in the search field.  */
+// function Suggest() {
+//     var keyword = $.trim($('#keyword').val());
+//     if (keyword != "" && $.trim($('#keyword').val()).length > 1) {
+//         $('#result_box').html("<span id='loader'></span>");
+//         $('#result_box').css('display', 'block');
+//         $.ajax(
+//         {
+//             type: "POST",
+//             url: "/Search/SearchSuggest",
+//             data: "type=Anime" + '&keyword=' + keyword,
+//             success: function (message) {
+//                 if (message != "") {
+//                     message += '<a href="#" onclick="return false;">---------------</a>';
+//                     message += '<a href="#" onclick="return false;">PRESS ENTER TO SEARCH...</a>';
+//
+//                     $('#result_box').html(message);
+//                 }
+//                 else {
+//                     $('#result_box').html('<a href="#" onclick="return false;">PRESS ENTER TO SEARCH...</a>');
+//                 }
+//             }
+//         });
+//     }
+//     else {
+//         $('#result_box').html('');
+//         $('#result_box').css('display', 'none');
+//     }
+// }
