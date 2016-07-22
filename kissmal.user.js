@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.7.3
+// @version      1.7.5
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
 // @match        http://myanimelist.net/anime/*
 // @require      https://code.jquery.com/jquery-2.1.4.min.js
+// @require      https://gist.github.com/josefandersson/ea275d24b3685f91c1eb5a94dee6050f/raw/bd8964ca1822633656fa0d680c44b18a343d8968/remove_diacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
 // @resource     SettingsPopup https://github.com/josefandersson/KissMAL/raw/master/resources/settings.html
 // @grant        GM_addStyle
@@ -105,7 +106,7 @@ function makeLinks() {
                 var entry = linkTypeMap[typeIndex];
                 if (entry[0] === true) {
                     /* Create link and add it to the DOM */
-                    var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1])
+                    var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1]).attr('target', '_blank')
                         .html(entry[2]).addClass('kissanime_link')
                         .insertBefore(elementAfter);
                 }
@@ -126,7 +127,7 @@ function makeLinks() {
                     /* Create link and add it to the DOM */
                     // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1])
                     //     .html(entry[2]).addClass('kissanime_link').appendTo(parent);
-                    var link = $('<a></a>').attr('href', guessURL(query, entry[1] == ' (dub)'))
+                    var link = $('<a></a>').attr('href', guessURL(query, entry[1] == ' (dub)')).attr('target', '_blank')
                         .html(entry[2]).addClass('kissanime_link').appendTo(parent);
                 }
             }
@@ -154,7 +155,7 @@ function makeLinksForAnimePage() {
         if (entry[0] === true) {
             /* Create link and append it to the DOM */
             // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + animeTitle + entry[1]).html(entry[2]).addClass('kissanime_link');
-            var link = $('<a></a>').attr('href', guessURL(animeTitle, entry[1] == ' (dub)')).html(entry[2]).addClass('kissanime_link');
+            var link = $('<a></a>').attr('href', guessURL(animeTitle, entry[1] == ' (dub)')).attr('target', '_blank').html(entry[2]).addClass('kissanime_link');
             linkContainer.append(link);
         }
     }
@@ -163,7 +164,7 @@ function makeLinksForAnimePage() {
     $(linkContainer).insertAfter($('#content > table > tbody > tr > td.borderClass > div.js-scrollfix-bottom').children().first());
 
     /* Add the event handler */
-    $(document).on('click', '.kissanime_link', linkClicked);
+    // $(document).on('click', '.kissanime_link', linkClicked);
 }
 
 /* The function that is called when a kissanime link is clicked */
@@ -174,7 +175,7 @@ function linkClicked(event) {
 }
 
 /* Send the user to the kissanime website */
-/* "search" is the string that will be sent as a search query */
+/* search is the string that will be sent as a search query */
 function sendToKissAnime(search) {
     search = decodeURI(search);
 
@@ -189,7 +190,7 @@ function sendToKissAnime(search) {
 }
 
 
-/* Resets the settings in the settings popup to defualt (NOTE: The "save" button still has to be pressed for reset to take effect) */
+/* Resets the settings in the settings popup to defualt (NOTE: The save button still has to be pressed for reset to take effect) */
 function resetSettings() {
     $('textarea#css').val(config.defaultLinkCss);
     $('#general_link_enable')[0].checked = true;
@@ -225,8 +226,10 @@ function saveSettings() {
 ** title of the anime contains special characters(letters). */
 function guessURL(title, dub) {
     if (title) {
-        title = title.replace(/[^\w\s]/g, ''); // Remove special characters
-        title = title.split(' ').join('-');    // Remove whitespace
+        title = removeDiacritics(title);                 // Remove all diacritics
+        title = title.replace(/[^\w\s\\/;:.,★☆]/g, ''); // Remove special characters
+        title = title.replace(/[ \\/;:.,★☆]/g, '-');    // Remove whitespace
+        title = title.replace(/-{2,}/g, '-');            // Remove dashes in a row
         if (dub) { title += '-dub'; }
         return 'http://kissanime.to/Anime/' + title;
     } else {
@@ -240,23 +243,23 @@ function guessURL(title, dub) {
 ** in the search field.  */
 // function Suggest() {
 //     var keyword = $.trim($('#keyword').val());
-//     if (keyword != "" && $.trim($('#keyword').val()).length > 1) {
-//         $('#result_box').html("<span id='loader'></span>");
+//     if (keyword !=  && $.trim($('#keyword').val()).length > 1) {
+//         $('#result_box').html(<span id='loader'></span>);
 //         $('#result_box').css('display', 'block');
 //         $.ajax(
 //         {
-//             type: "POST",
-//             url: "/Search/SearchSuggest",
-//             data: "type=Anime" + '&keyword=' + keyword,
+//             type: POST,
+//             url: /Search/SearchSuggest,
+//             data: type=Anime + '&keyword=' + keyword,
 //             success: function (message) {
-//                 if (message != "") {
-//                     message += '<a href="#" onclick="return false;">---------------</a>';
-//                     message += '<a href="#" onclick="return false;">PRESS ENTER TO SEARCH...</a>';
+//                 if (message != ) {
+//                     message += '<a href=# onclick=return false;>---------------</a>';
+//                     message += '<a href=# onclick=return false;>PRESS ENTER TO SEARCH...</a>';
 //
 //                     $('#result_box').html(message);
 //                 }
 //                 else {
-//                     $('#result_box').html('<a href="#" onclick="return false;">PRESS ENTER TO SEARCH...</a>');
+//                     $('#result_box').html('<a href=# onclick=return false;>PRESS ENTER TO SEARCH...</a>');
 //                 }
 //             }
 //         });
