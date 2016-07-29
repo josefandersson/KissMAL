@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.7.6
+// @version      1.7.7
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        http://myanimelist.net/animelist/*
@@ -26,8 +26,7 @@ var designType;
     /* Get saved settings (or set default) */
     config.defaultLinkCss     = 'font-size: 10px; opacity: 0.8; margin-left: 3px; margin-right: 2px;';
     config.linkCss            = GM_getValue('kissanime_link_css') || config.defaultLinkCss;
-    config.subLinkEnabled     = GM_getValue('sub_link_enable') != 'false';     // Defaults the value to true if it doesn't exist
-    config.dubLinkEnabled     = GM_getValue('dub_link_enable') != 'false';
+    config.dubLinkEnabled     = GM_getValue('dub_link_enable') != 'false';     // Defaults the value to true if it doesn't exist
     config.generalLinkEnabled = GM_getValue('general_link_enable') != 'false';
     config.newTab             = GM_getValue('open_in_new_tab') != 'false';
 
@@ -78,7 +77,6 @@ function makeSettingsWindow() {
             container.attr('hidden', false);
             $('textarea#css').val(config.linkCss);
             $('#general_link_enable')[0].checked = config.generalLinkEnabled;
-            $('#sub_link_enable')[0].checked     = config.subLinkEnabled;
             $('#dub_link_enable')[0].checked     = config.dubLinkEnabled;
             $('#open_in_new_tab')[0].checked     = config.newTab;
         }
@@ -92,8 +90,11 @@ function removeLinks() {
 
 /* Create the links for the anime list page */
 function makeLinks() {
-    /* The different kinds of links that can be created. Second item in array is the extra string that will be appended to the search query. */
-    linkTypeMap = [[config.generalLinkEnabled, '', 'KissAnime'], [config.subLinkEnabled, ' (sub)', '(sub)'], [config.dubLinkEnabled, ' (dub)', '(dub)']];
+    function create(animeTitle, cb) {
+        /* Create the link elements and append them to the link container */
+        if (config.generalLinkEnabled) cb($('<a></a>').attr('href', guessURL(animeTitle      )).html('KissAnime').addClass('kissanime_link'));
+        if (config.dubLinkEnabled)     cb($('<a></a>').attr('href', guessURL(animeTitle, true)).html('(dub)'    ).addClass('kissanime_link'));
+    };
 
     /* If the list is using the new design */
     if (designType == 1) {
@@ -101,16 +102,8 @@ function makeLinks() {
             var elementAfter = $(element).children('div.add-edit-more');
             var query        = ($(element).children('a').text() + '').slice(11, -8);
 
-            /* Loop through the different type of search links */
-            for (var typeIndex in linkTypeMap) {
-                var entry = linkTypeMap[typeIndex];
-                if (entry[0] === true) {
-                    /* Create link and add it to the DOM */
-                    var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1]).attr('target', '_blank')
-                        .html(entry[2]).addClass('kissanime_link')
-                        .insertBefore(elementAfter);
-                }
-            }
+            // Create the element and insert it in the DOM
+            create(query, function(el) { el.insertBefore(elementAfter); });
         });
     }
 
@@ -120,73 +113,32 @@ function makeLinks() {
             var parent = $(element.parentNode);
             var query  = $(element).children('span').first().text();
 
-            /* Loop through the different type of search links */
-            for (var typeIndex in linkTypeMap) {
-                var entry = linkTypeMap[typeIndex];
-                if (entry[0] === true) {
-                    /* Create link and add it to the DOM */
-                    // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + query + entry[1])
-                    //     .html(entry[2]).addClass('kissanime_link').appendTo(parent);
-                    var link = $('<a></a>').attr('href', guessURL(query, entry[1] == ' (dub)')).attr('target', '_blank')
-                        .html(entry[2]).addClass('kissanime_link').appendTo(parent);
-                }
-            }
+            // Create the element and insert it in the DOM
+            create(query, function(el) { el.appendTo(parent); });
         });
     }
 
-    /* Add the event handler */
-    // $(document).on('click', '.kissanime_link', linkClicked);
+    /* If links are supposed to open in a new tab, change all links target to _blank */
+    if (config.newTab) $('.kissanime_link').attr('target', '_blank');
 }
 
 /* Create the links for the anime description page */
 function makeLinksForAnimePage() {
-    /* The different kinds of links that can be created. Second item in array is the extra string that will be appended to the search query. */
-    linkTypeMap = [[config.generalLinkEnabled, '', 'KissAnime'], [config.subLinkEnabled, ' (sub)', '(sub)'], [config.dubLinkEnabled, ' (dub)', '(dub)']];
-
     /* We need the title of the anime */
     var animeTitle = $('h1.h1 span').text();
 
     /* We will put the links inside this div */
     var linkContainer = $('<div>', {class: 'kissmal_link_container'});
 
-    /* Loop through the kissanime link types */
-    for (var typeIndex in linkTypeMap) {
-        var entry = linkTypeMap[typeIndex];
-        if (entry[0] === true) {
-            /* Create link and append it to the DOM */
-            // var link = $('<a></a>').attr('href', 'http://thisisjusta.filler/' + animeTitle + entry[1]).html(entry[2]).addClass('kissanime_link');
-            var link = $('<a></a>').attr('href', guessURL(animeTitle, entry[1] == ' (dub)')).attr('target', '_blank').html(entry[2]).addClass('kissanime_link');
-            linkContainer.append(link);
-        }
-    }
+    /* Create the link elements and append them to the link container */
+    if (config.generalLinkEnabled) $('<a></a>').attr('href', guessURL(animeTitle      )).html('KissAnime').addClass('kissanime_link').appendTo(linkContainer);
+    if (config.dubLinkEnabled)     $('<a></a>').attr('href', guessURL(animeTitle, true)).html('(dub)'    ).addClass('kissanime_link').appendTo(linkContainer);
 
     /* We place the links below the anime profile image */
     $(linkContainer).insertAfter($('#content > table > tbody > tr > td.borderClass > div.js-scrollfix-bottom').children().first());
 
-    /* Add the event handler */
-    // $(document).on('click', '.kissanime_link', linkClicked);
-}
-
-/* The function that is called when a kissanime link is clicked */
-function linkClicked(event) {
-    event.preventDefault();
-    var element = event.toElement || event.target;
-    if (element) sendToKissAnime(element.href.substring(26));
-}
-
-/* Send the user to the kissanime website */
-/* search is the string that will be sent as a search query */
-function sendToKissAnime(search) {
-    search = decodeURI(search);
-
-    /* To redirect them with POST parameters we need to create a form and submit it */
-    var form  = $('<form>',  { action: 'https://kissanime.to/Search/Anime', method: 'POST', hidden: true, target: config.newTab ? '_blank' : undefined });
-    var input = $('<input>', { type: 'text', name: 'keyword', value: search });
-
-    /* Add the elements to DOM and submit it */
-    form.append(input);
-    $(document.body).append(form); // FF needs the form to be in the DOM
-    form.submit();
+    /* If links are supposed to open in a new tab, change all links target to _blank */
+    if (config.newTab) $('.kissanime_link').attr('target', '_blank');
 }
 
 
@@ -194,7 +146,6 @@ function sendToKissAnime(search) {
 function resetSettings() {
     $('textarea#css').val(config.defaultLinkCss);
     $('#general_link_enable')[0].checked = true;
-    $('#sub_link_enable')[0].checked     = true;
     $('#dub_link_enable')[0].checked     = true;
     $('#open_in_new_tab')[0].checked     = true;
 }
@@ -204,14 +155,12 @@ function saveSettings() {
     /* Get values from inputs */
     config.linkCss            = $('textarea#css').val();
     config.generalLinkEnabled = $('#general_link_enable')[0].checked;
-    config.subLinkEnabled     = $('#sub_link_enable')[0].checked;
     config.dubLinkEnabled     = $('#dub_link_enable')[0].checked;
     config.newTab             = $('#open_in_new_tab')[0].checked;
 
     /* Save settings to storage */
     GM_setValue('kissanime_link_css',  config.linkCss);
     GM_setValue('general_link_enable', config.generalLinkEnabled + '');
-    GM_setValue('sub_link_enable',     config.subLinkEnabled + '');
     GM_setValue('dub_link_enable',     config.dubLinkEnabled + '');
     GM_setValue('open_in_new_tab',     config.newTab + '');
 
@@ -236,36 +185,3 @@ function guessURL(title, dub) {
         return false;
     }
 }
-
-
-
-/* This is the function that kissanime uses for making suggestions
-** in the search field.  */
-// function Suggest() {
-//     var keyword = $.trim($('#keyword').val());
-//     if (keyword !=  && $.trim($('#keyword').val()).length > 1) {
-//         $('#result_box').html(<span id='loader'></span>);
-//         $('#result_box').css('display', 'block');
-//         $.ajax(
-//         {
-//             type: POST,
-//             url: /Search/SearchSuggest,
-//             data: type=Anime + '&keyword=' + keyword,
-//             success: function (message) {
-//                 if (message != ) {
-//                     message += '<a href=# onclick=return false;>---------------</a>';
-//                     message += '<a href=# onclick=return false;>PRESS ENTER TO SEARCH...</a>';
-//
-//                     $('#result_box').html(message);
-//                 }
-//                 else {
-//                     $('#result_box').html('<a href=# onclick=return false;>PRESS ENTER TO SEARCH...</a>');
-//                 }
-//             }
-//         });
-//     }
-//     else {
-//         $('#result_box').html('');
-//         $('#result_box').css('display', 'none');
-//     }
-// }
