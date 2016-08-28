@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.7.9
+// @version      1.7.10
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
 // @match        *://myanimelist.net/anime/*
-// @require      https://code.jquery.com/jquery-2.1.4.min.js
+// @require      https://code.jquery.com/jquery-3.1.0.min.js
 // @require      https://openuserjs.org/src/libs/DrDoof/RemoveDiacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
 // @resource     SettingsPopup https://github.com/josefandersson/KissMAL/raw/master/resources/settings.html
@@ -32,8 +32,8 @@ var designType;
 
     /* Check what page we are on */
     var url = window.location.href;
-    if (/(http:\/\/myanimelist.net\/animelist\/)/.test(url))  site = 'animelist';
-    else if (/(http:\/\/myanimelist.net\/anime\/)/.test(url)) site = 'anime';
+    if (/(http[s]?:\/\/myanimelist.net\/animelist\/)/.test(url))  site = 'animelist';
+    else if (/(http[s]?:\/\/myanimelist.net\/anime\/)/.test(url)) site = 'anime';
 
     /* Since the new list design we need to know if the animelist we are viewing is updated or not */
     if (site == 'animelist') {
