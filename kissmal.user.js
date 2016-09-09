@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.7.10
+// @version      1.7.11
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
@@ -175,10 +175,11 @@ function saveSettings() {
 ** title of the anime contains special characters(letters). */
 function guessURL(title, dub) {
     if (title) {
-        title = removeDiacritics(title);                 // Remove all diacritics
-        title = title.replace(/[^\w\s\\/;:.,★☆]/g, ''); // Remove special characters
-        title = title.replace(/[ \\/;:.,★☆]/g, '-');    // Remove whitespace
-        title = title.replace(/-{2,}/g, '-');            // Remove dashes in a row
+        title = removeDiacritics(title);                  // Remove all diacritics
+        title = title.replace(/[^\w\s\\/;:.\-,★☆]/g, ''); // Remove special characters
+        title = title.replace(/[ \\/;:.,★☆]/g, '-');     // Remove whitespace
+        title = title.replace(/-{2,}/g, '-');             // Remove dashes in a row
+        title = title.replace(/\-$/g, '');                // Remove dash at the end of the string
         if (dub) { title += '-dub'; }
         return 'http://kissanime.to/Anime/' + title;
     } else {
