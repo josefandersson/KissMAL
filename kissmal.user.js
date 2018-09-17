@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.8
+// @version      1.91
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
@@ -11,14 +11,11 @@
 // @require      https://code.jquery.com/jquery-3.1.0.min.js
 // @require      https://openuserjs.org/src/libs/DrDoof/RemoveDiacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
-// @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @run-at       document-end
 // ==/UserScript==
-
-/* jshint esversion: 6 */
 
 /* An object that represents the current page. This object contains the methods for altering the page. */
 class Page {
@@ -280,7 +277,7 @@ $(document).ready(() => {
     config = new Config();
 
     // Add the styling for the settings popup and the kissmal links.
-    GM_addStyle( GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}' );
+    addStyle( GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}' );
 
     // Parse the current page we're on.
     page = new Page( window.location.href );
@@ -309,3 +306,18 @@ function guessURL(title, dub, isManga) {
         return false;
     }
 }
+
+
+/* GM_addStyle is removed in Greasemonkey 4.0 */
+function addStyle(css) {
+    const style = document.getElementById("GM_addStyleBy8626") || (function() {
+        const style = document.createElement('style');
+        style.type = 'text/css';
+        style.id = "GM_addStyleBy8626";
+        document.head.appendChild(style);
+        return style;
+    })();
+    const sheet = style.sheet;
+    sheet.insertRule(css, (sheet.rules || sheet.cssRules || []).length);
+}
+  
