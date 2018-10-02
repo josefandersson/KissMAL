@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.91
+// @version      1.92
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
 // @match        *://myanimelist.net/anime/*
 // @match        *://myanimelist.net/mangalist/*
 // @match        *://myanimelist.net/manga/*
-// @require      https://code.jquery.com/jquery-3.1.0.min.js
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 // @require      https://openuserjs.org/src/libs/DrDoof/RemoveDiacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
 // @grant        GM_getResourceText
@@ -174,7 +174,7 @@ class Page {
         // Add event handlers for the settings checkboxes.
         $('#close_settings').click(function(e) { container.attr('hidden', true); });
         $('#reset_settings').click(function(e) { resetSettings();                });
-        $('#save_settings').click(function(e)  { saveSettings(); console.log('wat?');                });
+        $('#save_settings').click(function(e)  { saveSettings();                 });
 
         // Create the button that opens the settings window.
         var settings = $('<a></a>').attr('href', '#').html('Edit KissMAL settings');
@@ -225,7 +225,8 @@ class Config {
     constructor() {
         // Get saved settings or set defaults.
         this.settingsData = {};
-        var val;
+        let val;
+        let self = this
         for (var settingName in Config.settings) {
             if ((val = GM_getValue( settingName )) === undefined)
                 val = Config.settings[settingName].default;
@@ -277,7 +278,10 @@ $(document).ready(() => {
     config = new Config();
 
     // Add the styling for the settings popup and the kissmal links.
-    addStyle( GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}' );
+    // GM_addStyle( GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}' );
+    let style = document.createElement('style')
+    style.innerHTML = GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}'
+    document.head.appendChild(style)
 
     // Parse the current page we're on.
     page = new Page( window.location.href );
@@ -306,18 +310,3 @@ function guessURL(title, dub, isManga) {
         return false;
     }
 }
-
-
-/* GM_addStyle is removed in Greasemonkey 4.0 */
-function addStyle(css) {
-    const style = document.getElementById("GM_addStyleBy8626") || (function() {
-        const style = document.createElement('style');
-        style.type = 'text/css';
-        style.id = "GM_addStyleBy8626";
-        document.head.appendChild(style);
-        return style;
-    })();
-    const sheet = style.sheet;
-    sheet.insertRule(css, (sheet.rules || sheet.cssRules || []).length);
-}
-  
