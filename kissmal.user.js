@@ -302,7 +302,7 @@ function guessURL(title, dub, isManga) {
         title = title.replace(/[ \\/;:.,★☆]/g, '-');     // Remove whitespace
         title = title.replace(/-{2,}/g, '-');             // Remove dashes in a row
         title = title.replace(/\-$/g, '');                // Remove dash at the end of the string
-        var url = 'http://kissanime.to/Anime/';
+        var url = 'http://kissanime.ru/Anime/';
         if (isManga) { url = 'http://kissmanga.com/Manga/'; }
         else if (dub) { title += '-dub'; }
         return url + title;
