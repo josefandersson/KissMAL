@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.96
+// @version      1.97
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
@@ -11,6 +11,7 @@
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require      https://openuserjs.org/src/libs/DrDoof/RemoveDiacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
+// @icon         https://cdn.myanimelist.net/images/faviconv5.ico
 // @grant        GM_getResourceText
 // @grant        GM_setValue
 // @grant        GM_getValue
