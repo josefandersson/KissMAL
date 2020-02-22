@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.94
+// @version      1.95
 // @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
 // @match        *://myanimelist.net/anime/*
 // @match        *://myanimelist.net/mangalist/*
 // @match        *://myanimelist.net/manga/*
-// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require      https://openuserjs.org/src/libs/DrDoof/RemoveDiacritics.js
 // @resource     MainCSS https://github.com/josefandersson/KissMAL/raw/master/resources/kissmal.css
 // @grant        GM_getResourceText
@@ -54,63 +54,67 @@ class Page {
 
 
 
+    createLinkElement(title, dub, displayText) {
+        const link = document.createElement('a');
+        link.href = guessURL(title, dub, !this.isAnime);
+        link.innerText = displayText;
+        link.className = 'kissmal_link';
+        if (config.getValue('newTab')) link.target = '_blank';
+        return link;
+    }
+
+
+
     /* Add the links for a information page. */
     makeLinksForInfoPage() {
         // Get the title of the anime/manga.
-        var title = $('h1.h1 span').text();
+        const title = document.querySelector('h1.h1 span').innerText;
 
         // All links will be put inside this DIV.
-        var linkContainer = $('<div>', { class: 'kissmal_link_container' });
+        const linkContainer = document.createElement('div');
+        linkContainer.className = 'kissmal_link_container';
 
-        /* Create the link elements and append them to the link container */
-        var addLink = ( dub, display_text ) => { $('<a></a>').attr('href', guessURL( title, dub, !this.isAnime )).html(display_text).addClass('kissmal_link').appendTo(linkContainer); };
-        var displayText = this.isAnime ? config.getValue('displayTextAnime') : config.getValue('displayTextManga');
-
-        if (config.getValue('generalLinkEnabled'))             addLink( false, displayText           );
-        if (this.isAnime && config.getValue('dubLinkEnabled')) addLink( true,  config.getValue('displayTextDub') );
+        // Create the link elements and append them to the link container
+        const displayText = this.isAnime ? config.getValue('displayTextAnime') : config.getValue('displayTextManga');
+        if (config.getValue('generalLinkEnabled'))             linkContainer.appendChild(this.createLinkElement(title, false, displayText));
+        if (this.isAnime && config.getValue('dubLinkEnabled')) linkContainer.appendChild(this.createLinkElement(title, true,  config.getValue('displayTextDub')));
 
         // Insert the link container underneath the anime/manga cover image.
-        $(linkContainer).insertAfter($('#content > table > tbody > tr > td.borderClass > div.js-scrollfix-bottom').children().first());
-
-        // If links are supposed to open in a new tab, change all links target to _blank.
-        if (config.getValue('newTab')) $('.kissmal_link').attr('target', '_blank');
+        const parent = document.querySelector('#content > table > tbody > tr > td.borderClass > div.js-scrollfix-bottom');
+        parent.insertBefore(linkContainer, parent.children[1]);
     }
 
 
 
     /* Add the links for a list page. */
     makeLinksForListPage() {
-        var addLink = ( title, cb, dub, display_text ) => { cb($('<a></a>').attr('href', guessURL( title, dub, !this.isAnime )).html( display_text ).addClass('kissmal_link')); };
-        var displayText = this.isAnime ? config.getValue('displayTextAnime') : config.getValue('displayTextManga');
+        const displayText = this.isAnime ? config.getValue('displayTextAnime') : config.getValue('displayTextManga');
 
         // Depending on if the list is using the old or the new design we'll use different methods to add the links.
         if (this.isNewListDesign) {
-            $('td.title').each(( index, element ) => {
-                var elementAfter = $(element).children('div.add-edit-more');
-                var title        = $(element).children('a').first().text();
+            [...document.querySelectorAll('td.title')].forEach(element => {
+                const childAfter = element.children[3];
+                const title = element.children[0].innerText;
 
-                if (config.getValue('generalLinkEnabled'))             addLink( title, (link) => { link.insertBefore( elementAfter ); }, false, displayText                       );
-                if (this.isAnime && config.getValue('dubLinkEnabled')) addLink( title, (link) => { link.insertBefore( elementAfter ); }, true,  config.getValue('displayTextDub') );
+                if (config.getValue('generalLinkEnabled'))             element.insertBefore(this.createLinkElement(title, false, displayText), childAfter );
+                if (this.isAnime && config.getValue('dubLinkEnabled')) element.insertBefore(this.createLinkElement(title, true, config.getValue('displayTextDub')), childAfter);
             });
         } else {
-            $('.animetitle').each(( index, element ) => {
-                var parent = $(element.parentNode);
-                var title  = $(element).children('span').first().text();
+            [...document.querySelectorAll('.animetitle')].forEach(element => {
+                const parent = element.parentNode;
+                const title = element.children[0].innerText;
 
-                if (config.getValue('generalLinkEnabled'))             addLink( title, (link) => { link.appendTo( parent ); }, false, displayText                       );
-                if (this.isAnime && config.getValue('dubLinkEnabled')) addLink( title, (link) => { link.appendTo( parent ); }, true,  config.getValue('displayTextDub') );
+                if (config.getValue('generalLinkEnabled'))             parent.appendChild(this.createLinkElement(title, false, displayText));
+                if (this.isAnime && config.getValue('dubLinkEnabled')) parent.appendChild(this.createLinkElement(title, true, config.getValue('displayTextDub')));
             });
         }
-
-        // If links are supposed to open in a new tab, change all links target to _blank.
-        if (config.getValue('newTab')) $('.kissmal_link').attr('target', '_blank');
     }
 
 
 
-    /* Add the settings window. (Includes the button for opening it.) */
+    // Add settings window.
     makeSettingsWindow() {
-        var html = '<h3 class="kissmal">KissMAL settings</h3>';
+        let html = '<h3 class="kissmal">KissMAL settings</h3>';
         var setting, input;
         for (var settingName in Config.settings) {
             setting = Config.settings[settingName];
@@ -200,17 +204,17 @@ class Page {
 
 
 
-    /* Remove all kissmal links. */
+    // Remove all kissmal links.
     removeCreatedLinks() {
         $('.kissmal_link').each(function(index, element) { element.remove(); });
     }
 }
 
 
-/* This objects represents our settings. Contains methods for getting settings, saving settings and loading settings. */
+// Represents persistent user settings.
 class Config {
 
-    /* All the settings that are available. */
+    // All available settings.
     static get settings() {
         return {
             "linkCss":            { display_text:"Link style (css)",               description: 'Change the styling of the kissMAL links using CSS.',  type:'textarea', default:'font-size: 10px; opacity: 0.8; margin-left: 3px; margin-right: 2px;' },
@@ -227,50 +231,48 @@ class Config {
         // Get saved settings or set defaults.
         this.settingsData = {};
         let val;
-        let self = this
-        for (var settingName in Config.settings) {
+        for (const settingName in Config.settings) {
             if ((val = GM_getValue( settingName )) === undefined)
                 val = Config.settings[settingName].default;
-            this.setValue( settingName, val );
+            this.setValue(settingName, val);
         }
     }
 
-    /* Set key to value. (Also saves to disk.) */
+    // Set setting. (Saves to disk)
     setValue( key, value ) {
         this.settingsData[key] = value;
-        GM_setValue( key, value );
+        GM_setValue(key, value);
         return value;
     }
 
-    /* Get value from key. (Gets only from memory, not from disk.) */
+    // Get setting. (Doesn't load from disk)
     getValue( key ) {
-        var val = this.settingsData[key];
+        let val = this.settingsData[key];
         if (val === undefined)
             if ((val = GM_getValue( key )) === undefined)
                 val = Config.settings[key].default;
         return val;
     }
 
-    /* Saves current settings to disk. */
+    // Save settings to disk.
     saveSettings() {
-        for (var settingName in this.settingsData) {
-            GM_setValue( settingName, this.settingsData[settingName] );
+        for (const settingName in this.settingsData) {
+            GM_setValue(settingName, this.settingsData[settingName]);
         }
     }
 
-    /* Reset all settings to default. (Also saves to disk.) */
+    // Reset settings. (Saves to disk)
     resetSettings() {
-        var def;
-        for (var settingName in this.settingsData) {
-            setValue( settingName, Config.settings[settingName].default );
+        for (const settingName in this.settingsData) {
+            setValue(settingName, Config.settings[settingName].default);
         }
     }
 }
 
 
 
-var config;
-var page;
+let config;
+let page;
 
 $(document).ready(() => {
     'use strict';
@@ -279,13 +281,12 @@ $(document).ready(() => {
     config = new Config();
 
     // Add the styling for the settings popup and the kissmal links.
-    // GM_addStyle( GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}' );
-    let style = document.createElement('style')
-    style.innerHTML = GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}'
-    document.head.appendChild(style)
+    const style = document.createElement('style');
+    style.innerHTML = GM_getResourceText('MainCSS') + '.kissmal_link {' + config.getValue('linkCss') + '}';
+    document.head.appendChild(style);
 
     // Parse the current page we're on.
-    page = new Page( window.location.href );
+    page = new Page(window.location.href);
 
     // Make the links.
     page.makeLinks();
@@ -295,7 +296,7 @@ $(document).ready(() => {
 
 /* The best we can do is to guess the url for the anime from the title..
 ** This process should be pretty straight forward except for when the
-** title of the anime contains special characters(letters). */
+** title of the anime contains special characters. */
 function guessURL(title, dub, isManga) {
     if (title) {
         title = removeDiacritics(title);                  // Remove all diacritics
@@ -303,10 +304,8 @@ function guessURL(title, dub, isManga) {
         title = title.replace(/[ \\/;:.,★☆]/g, '-');     // Remove whitespace
         title = title.replace(/-{2,}/g, '-');             // Remove dashes in a row
         title = title.replace(/\-$/g, '');                // Remove dash at the end of the string
-        var url = 'http://kissanime.ru/Anime/';
-        if (isManga) { url = 'http://kissmanga.com/Manga/'; }
-        else if (dub) { title += '-dub'; }
-        return url + title;
+        if (isManga) return `https://kissmanga.com/Manga/${title}${dub?'-dub':''}`;
+        else         return `https://kissanime.ru/Anime/${title}${dub?'-dub':''}`;
     } else {
         return false;
     }
