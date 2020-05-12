@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         KissMAL
 // @namespace    https://github.com/josefandersson/KissMAL
-// @version      1.98
-// @description  Adds a link to kissanime.to next to every animetitle for easy anime watching.
+// @version      1.99
+// @description  Adds links to kissanime/kissmanga on MAL.
 // @author       Josef
 // @match        *://myanimelist.net/animelist/*
 // @match        *://myanimelist.net/anime/*
@@ -82,7 +82,7 @@ class Page {
         if (this.isAnime && config.getValue('dubLinkEnabled')) linkContainer.appendChild(this.createLinkElement(title, true,  config.getValue('displayTextDub')));
 
         // Insert the link container underneath the anime/manga cover image.
-        const parent = document.querySelector('#content > table > tbody > tr > td.borderClass > div.js-scrollfix-bottom');
+        const parent = document.querySelector('#content > table > tbody > tr > td.borderClass > div > div');
         parent.insertBefore(linkContainer, parent.children[1]);
     }
 
